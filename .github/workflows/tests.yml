@@ -1,0 +1,40 @@
+# .github/workflows/tests.yml
+# ----------------------------
+# Runs the Playwright test suite automatically on every push and pull request.
+# This is the CI/CD integration the JD asks for - my tests run in the pipeline,
+# not just on my laptop.
+
+name: Playwright Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          playwright install --with-deps chromium
+
+      - name: Run tests
+        run: pytest
+
+      - name: Upload HTML report
+        if: always()          # upload the report even if tests failed
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report
+          path: reports/report.html
